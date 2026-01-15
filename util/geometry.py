@@ -18,7 +18,6 @@ def findCenters(gray):
 
 circularityCutoff = 0.75
 areaMin = 10
-areaMax = 700000
 def findCircles(contours):
     circles = []
     for contour in contours:
@@ -26,12 +25,13 @@ def findCircles(contours):
         perimeter = cv2.arcLength(contour, True)
         if perimeter != 0:
             circularity = (4 * math.pi * area) / (perimeter**2)
-            if circularity > circularityCutoff and areaMin < area < areaMax:
+            if circularity > circularityCutoff and areaMin < area:
                 circles.append(cv2.minEnclosingCircle(contour))
     return circles
 
 distanceCutoff = 20
 radiusCutoff = 10
+radiiCountCutoff = 1
 def findRadii(centers, circles, maxRadius):
     centerRadiiMap = dict()
     for center in centers:
@@ -54,5 +54,6 @@ def findRadii(centers, circles, maxRadius):
         radii = []
         for index in range(len(radiiCounts)):
             radii.append(radiiSums[index] / radiiCounts[index])
-        centerRadiiMap[(cx, cy)] = radii
+        if (len(radii) > radiiCountCutoff):
+            centerRadiiMap[(cx, cy)] = radii
     return centerRadiiMap

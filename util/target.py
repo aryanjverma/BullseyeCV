@@ -1,8 +1,11 @@
 import cv2
 from geometry import *
 from arrows import *
-from collections import Counter
+import numpy as np
+from targetTypes import TARGET_SPECS
+import functools
 
+@functools.total_ordering
 class Target:
     def __init__(self, start):
         self.start = start
@@ -19,26 +22,35 @@ class Target:
         maxRadius = min(self.start.shape[0] / 2, self.start.shape[1] / 2)
         self.radiiMap = findRadii(centers, circles, maxRadius)
         self.centers = list(self.radiiMap.keys())
+        self.numTargets = len(self.centers)
         self.score = 0
         self.numCircles = len(self.radiiMap[self.centers[0]])
         self.targetType = self.getTargetType()
+        self.xCount = 0
         print(self.targetType)
+    def __eq__(self, other):
+        if not isinstance(other, Target):
+            raise TypeError('Comparing target to non-target is illegal')
+        if self.targetType != other.targetType:
+            raise TypeError('Comparing differnt target types is illegal')
+        return self.score == other.score and self.xCount == other.xCount
+    def __lt__(self, other):
+        return self.score < other.score or (self.score == other.score and self.xCount < other.xCount)
+
     def getTargetType(self):
-        if (self.numCircles == 11):
-            return 'Vegas 1 Spot'
-        elif (self.numCircles == 4):
-            return 'NFAA 5 Spot'
-        elif (len(self.centers) > 1):
-            return 'Vegas 3 spot'
-        else:
-            return 'NFAA 1 Spot'
+        for target in TARGET_SPECS:
+            if (target.numTargets == self.numTargets and target.numCircles == self.numCircles):
+                return target
+        raise NotImplementedError('Arrow type of: ' + str(self.numCircles) + ' rings(s) and ' +
+                                  str(self.numTargets) + ' spot(s) is not supported.')
     def updateScore(self, before, after):
         newArrowPositions = findArrowPositions(before, after, self.centers)
-        circlePositions = []
+        circlePositions = np.zeros(shape=(self.numCircles+1))
         for position in newArrowPositions:
-            circlePositions.append(self.locateInnerCirclePosition(position))
-        circlePositionsCounter = Counter(circlePositions)
-        print(circlePositionsCounter)
+            circlePositions[self.locateInnerCirclePosition(position)] += 1
+        self.score += np.dot(circlePositions, self.targetType.scoreVector)
+        print(self.score)
+        self.xCount += circlePositions[0]
         
     def locateInnerCirclePosition(self, position):
         for center in self.centers:

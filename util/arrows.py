@@ -14,7 +14,6 @@ def findArrowPositions(before, after, centers):
     contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(image, contours, -1, (0,255,0), 2)
     cx, cy = centers[0]
-    print(cx, cy)
     areaMin = 50
     positions = []
     for contour in contours:

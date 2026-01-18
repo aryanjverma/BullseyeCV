@@ -58,10 +58,11 @@ def findRadii(centers, circles, maxRadius):
             centerRadiiMap[(cx, cy)] = radii
     return centerRadiiMap
 epsilonCoef = 0.04
-aspectRatioCutoff = 0.1
-def findLargestSquare(contours):
+aspectRatioCutoff = 0.05
+def findLargestSquare(contours, shape):
+
     largestSquare = None
-    largestSquareArea = areaMin
+    largestSquareArea = shape[0] * shape[1] / 16
     for contour in contours:
         area = cv2.contourArea(contour)
         if area > largestSquareArea:
@@ -73,7 +74,7 @@ def findLargestSquare(contours):
                 if abs(1 - aspectRatio) < aspectRatioCutoff:
                     largestSquare = approx
                     largestSquareArea = area
-    return orderPoints(largestSquare)
+    return largestSquare
 def orderPoints(points):
     points = np.array(points).reshape(4, 2)
     s = points.sum(axis=1)

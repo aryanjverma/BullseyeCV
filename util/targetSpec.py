@@ -7,3 +7,5 @@ class TargetSpec:
     numTargets: int
     numCircles: int
     scoreVector: np.ndarray
+    centers: np.ndarray
+    radii: np.ndarray
